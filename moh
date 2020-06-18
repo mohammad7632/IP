@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+ 
+# -*- coding: utf-8 -*-
+
+import numpy as np
+import pandas as pd
+from numpy import *
+import math
+import sqlite3
+from telegram.ext import Updater
+from telegram.ext import CommandHandler
+from telegram.ext import MessageHandler, Filters
+from datetime import datetime
+
+#وارد کردن توکن
+updater = Updater(token='1202990127:AAFl2x6q7hliMiCGJaQ9ahOxFe4Je9grxs8')
+dispatcher = updater.dispatcher
+
+#نشان دادن متن به کاربر
+def start(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text="Welcome to 'Zero to Hero' Bot")
+
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
+
+
+#دريافت متن از کاربر
+def getCm(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id, text="Thanks. Our channel address: telegram.me/zerotoheroir")
+    userInfo = update.message.chat
+    userMessage = update.message.text
+    userId = userInfo['id']
+    userName = userInfo['username']
+
+    cn = sqlite3.connect("zthdb.sqlite")
+    cn.execute("PRAGMA ENCODING = 'utf8';")
+    cn.text_factory = str
+    cn.execute("CREATE TABLE IF NOT EXISTS user_comment(u_id MEDIUMINT, u_name VARCHAR(50), u_comment TEXT, u_time DATETIME);")
+    cn.execute("INSERT INTO user_comment VALUES (?, ?, ?, ?,);", (userId, userName, userMessage, datetime.now()))
+    cn.commit()
+    cn.close()
+
+cm_handler = MessageHandler([Filters.text], getCm)
+dispatcher.add_handler(cm_handler)
+
+# شروع به کار ربات
+updater.start_polling()
+updater.idle()
+updater.stop()
